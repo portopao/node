@@ -1,30 +1,38 @@
-import { Router, response } from 'express';
-import { startOfHour, parseISO } from 'date-fns';
+import { Router } from 'express';
+import { parseISO } from 'date-fns';
 
 import AgendamentosRepositorio from '../repositories/AgendamentosRepositorio';
+import CriarAgendamentoService from '../service/CriarAgendamentoService';
 
 const agendamentosRouter = Router();
 const agendamentosRepositorio = new AgendamentosRepositorio();
 
+agendamentosRouter.get('/', (request, response) => {
+  const agendamentos = agendamentosRepositorio.all();
+
+  return response.json(agendamentos);
+});
+
 agendamentosRouter.post('/', (request, response) => {
-  //dados para criar agendamento
-  const { empresa, data } = request.body;
+  try {
+    //dados para criar agendamento
+    const { empresa, data } = request.body;
 
-  const horaConvertida = startOfHour(parseISO(data));
-  const procurarAgendamentoNaMesmaData = agendamentosRepositorio.achePorData(
-    horaConvertida
-  );
+    const horaControlada = parseISO(data);
 
-  if (procurarAgendamentoNaMesmaData) {
-    return response.status(400).json({
-      message:
-        'Este horário de agendamento está ocupado. Por favor, selecione outro',
+    const criarAgendamento = new CriarAgendamentoService(
+      agendamentosRepositorio
+    );
+
+    const agendamento = criarAgendamento.execute({
+      data: horaControlada,
+      empresa,
     });
+
+    return response.json(agendamento);
+  } catch (error) {
+    return response.status(400).json({ error: error.message });
   }
-
-  const agendamento = agendamentosRepositorio.create(empresa, horaConvertida);
-
-  return response.json(agendamento);
 });
 
 export default agendamentosRouter;

@@ -1,12 +1,22 @@
-import Agendamento from '../models/Agendamento';
 import { isEqual } from 'date-fns';
+import Agendamento from '../models/Agendamento';
+
 // Manipulações dentro do agendamento (CRUD)
+interface CriarAgendamentoDTO {
+  empresa: string;
+
+  data: Date;
+}
 
 class AgendamentosRepositorio {
   private agendamentos: Agendamento[];
 
   constructor() {
     this.agendamentos = [];
+  }
+
+  public all(): Agendamento[] {
+    return this.agendamentos;
   }
 
   public achePorData(data: Date): Agendamento | null {
@@ -17,12 +27,12 @@ class AgendamentosRepositorio {
     return procurarAgendamentoNaMesmaData || null;
   }
 
-  public create(empresa: string, data: Date): Agendamento {
-    const NovoAgendamento = new Agendamento(empresa, data);
+  public create({ empresa, data }: CriarAgendamentoDTO): Agendamento {
+    const agendamento = new Agendamento({ empresa, data });
 
-    this.agendamentos.push(NovoAgendamento);
+    this.agendamentos.push(agendamento);
 
-    return NovoAgendamento;
+    return agendamento;
   }
 }
 
