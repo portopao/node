@@ -1,38 +1,14 @@
-import { isEqual } from 'date-fns';
 import Agendamento from '../models/Agendamento';
+import { EntityRepository, Repository } from 'typeorm';
 
-// Manipulações dentro do agendamento (CRUD)
-interface CriarAgendamentoDTO {
-  empresa: string;
-
-  data: Date;
-}
-
-class AgendamentosRepositorio {
-  private agendamentos: Agendamento[];
-
-  constructor() {
-    this.agendamentos = [];
-  }
-
-  public all(): Agendamento[] {
-    return this.agendamentos;
-  }
-
-  public achePorData(data: Date): Agendamento | null {
-    const procurarAgendamentoNaMesmaData = this.agendamentos.find((agend) =>
-      isEqual(data, agendamento.data)
-    );
+@EntityRepository(Agendamento)
+class AgendamentosRepositorio extends Repository<Agendamento> {
+  public async achePorData(data: Date): Promise<Agendamento | null> {
+    const procurarAgendamentoNaMesmaData = await this.findOne({
+      where: { data },
+    });
 
     return procurarAgendamentoNaMesmaData || null;
-  }
-
-  public create({ empresa, data }: CriarAgendamentoDTO): Agendamento {
-    const agendamento = new Agendamento({ empresa, data });
-
-    this.agendamentos.push(agendamento);
-
-    return agendamento;
   }
 }
 

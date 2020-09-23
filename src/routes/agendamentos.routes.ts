@@ -1,30 +1,29 @@
 import { Router } from 'express';
+import { getCustomRepository } from 'typeorm';
 import { parseISO } from 'date-fns';
 
 import AgendamentosRepositorio from '../repositories/AgendamentosRepositorio';
 import CriarAgendamentoService from '../service/CriarAgendamentoService';
 
 const agendamentosRouter = Router();
-const agendamentosRepositorio = new AgendamentosRepositorio();
 
-agendamentosRouter.get('/', (request, response) => {
-  const agendamentos = agendamentosRepositorio.all();
+agendamentosRouter.get('/', async (request, response) => {
+  const agendamentosRepositorio = getCustomRepository(AgendamentosRepositorio);
+  const agendamentos = await agendamentosRepositorio.find();
 
   return response.json(agendamentos);
 });
 
-agendamentosRouter.post('/', (request, response) => {
+agendamentosRouter.post('/', async (request, response) => {
   try {
     //dados para criar agendamento
     const { empresa, data } = request.body;
 
     const horaControlada = parseISO(data);
 
-    const criarAgendamento = new CriarAgendamentoService(
-      agendamentosRepositorio
-    );
+    const criarAgendamento = new CriarAgendamentoService();
 
-    const agendamento = criarAgendamento.execute({
+    const agendamento = await criarAgendamento.execute({
       data: horaControlada,
       empresa,
     });

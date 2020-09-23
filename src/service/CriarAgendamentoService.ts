@@ -1,6 +1,7 @@
-import Agendamento from '../models/Agendamento';
 import { startOfHour } from 'date-fns';
+import { getCustomRepository } from 'typeorm';
 
+import Agendamento from '../models/Agendamento';
 import AgendamentosRepositorio from '../repositories/AgendamentosRepositorio';
 
 interface RequestDTO {
@@ -12,16 +13,14 @@ interface RequestDTO {
 // dependecy inversion(SOLID)
 
 class CriarAgendamentoService {
-  private agendamentosRepositorio: AgendamentosRepositorio;
+  public async execute({ data, empresa }: RequestDTO): Promise<Agendamento> {
+    const agendamentosRepositorio = getCustomRepository(
+      AgendamentosRepositorio
+    );
 
-  constructor(agendamentosRepositorio: AgendamentosRepositorio) {
-    this.agendamentosRepositorio = agendamentosRepositorio;
-  }
-
-  public execute({ data, empresa }: RequestDTO): Agendamento {
     const horaAgendamento = startOfHour(data);
 
-    const procurarAgendamentoNaMesmaData = this.agendamentosRepositorio.achePorData(
+    const procurarAgendamentoNaMesmaData = await agendamentosRepositorio.achePorData(
       horaAgendamento
     );
 
@@ -31,10 +30,12 @@ class CriarAgendamentoService {
       );
     }
 
-    const agendamento = this.agendamentosRepositorio.create({
+    const agendamento = agendamentosRepositorio.create({
       empresa,
       data: horaAgendamento,
     });
+
+    await agendamentosRepositorio.save(agendamento);
 
     return agendamento;
   }
